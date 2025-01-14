@@ -9,5 +9,5 @@ pnpm install
 ## 启动
 
 ```
-pnpm start  || pnpm start --limit 50
+pnpm start
 ```
