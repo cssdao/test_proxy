@@ -11,11 +11,7 @@ import loadXLSFile from './loadXLSFile.ts';
  * @param {number} index - 代理序号。
  * @returns {Promise<void>}
  */
-async function checkProxyAndFetch(
-  proxyUrl: string,
-  token: string,
-  index: number
-) {
+async function checkProxyAndFetch(proxyUrl: string, token: string) {
   try {
     let agent;
 
@@ -25,7 +21,7 @@ async function checkProxyAndFetch(
     } else if (proxyUrl.startsWith('http')) {
       agent = new HttpsProxyAgent(proxyUrl);
     } else {
-      console.error(`❌ [代理${index}] 格式不支持：${proxyUrl}`);
+      console.error(`❌ 代理IP格式不支持：${proxyUrl}`);
       return;
     }
 
@@ -35,14 +31,12 @@ async function checkProxyAndFetch(
     });
 
     if (!ipResponse.ok) {
-      console.error(
-        `❌ [代理${index}] 连接失败，无法访问 IP 服务：${proxyUrl}`
-      );
+      console.error(`❌  连接失败，无法访问 IP 服务：${proxyUrl}`);
       return;
     }
 
     const ipData = await ipResponse.json();
-    console.log(`✅ [代理${index}] 连接成功，代理 IP: ${ipData.ip}`);
+    console.log(`✅ 连接成功，代理 IP: ${ipData.ip}`);
 
     // 使用代理请求 Discord User API
     const discordResponse = await fetch(
@@ -59,22 +53,14 @@ async function checkProxyAndFetch(
     );
 
     if (!discordResponse.ok) {
-      console.error(
-        `❌ [代理${index}] 获取 Discord 用户信息失败，状态码: ${discordResponse.status}`
-      );
+      console.error(`❌ 获取用户信息失败，Token 无效: ${token}`);
       return;
     }
 
     const userData = await discordResponse.json();
-    console.log(
-      `✅ [代理${index}] 获取用户信息成功，邮箱: ${
-        userData.email || '未提供邮箱'
-      }`
-    );
+    console.log(`✅ 获取用户信息成功，邮箱: ${userData.email || '未提供邮箱'}`);
   } catch (error) {
-    console.error(
-      `❌ [代理${index}] 请求失败：${proxyUrl}，错误信息: ${error.message}`
-    );
+    console.error(`❌ 请求失败：${proxyUrl}，错误信息: ${error.message}`);
   }
 }
 
@@ -84,14 +70,12 @@ async function checkProxyAndFetch(
 async function checkProxiesAndFetch() {
   const proxyData = await loadXLSFile('./config.xlsx');
   for (const [index, { proxy, token }] of proxyData.entries()) {
-    console.log(
-      `🔄 [代理${index + 1}] 准备测试，代理: ${proxy}, Token: ${token}`
-    );
+    console.log(`🔄 [代理${index + 1}] 准备测试，代理: ${proxy}`);
     if (!proxy || !token) {
-      console.warn(`⚠️ [代理${index + 1}] 数据缺失，跳过测试`);
+      console.warn(`⚠️ [代理${proxy}] 数据缺失，跳过测试`);
       continue;
     }
-    await checkProxyAndFetch(proxy, token, index + 1);
+    await checkProxyAndFetch(proxy, token);
   }
 }
 
