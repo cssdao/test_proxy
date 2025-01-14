@@ -20,6 +20,7 @@ async function checkProxy(proxyUrl: string, index: number) {
 
     if (!response.ok) {
       console.error(`❌代理无效！代理${index}: ${proxyUrl}`);
+      return false;
     }
 
     const data = await response.json();
