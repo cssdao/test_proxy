@@ -1,0 +1,18 @@
+{
+  "name": "test-proxy",
+  "version": "1.0.0",
+  "description": "Test Proxy",
+  "scripts": {
+    "start": "ts-node index.ts"
+  },
+  "dependencies": {
+    "node-fetch": "2.0.0",
+    "socks-proxy-agent": "^8.0.5",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
