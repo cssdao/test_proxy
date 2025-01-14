@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import { SocksProxyAgent } from 'socks-proxy-agent';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 import loadXLSFile from './loadXLSFile.ts';
 
 /**
@@ -12,7 +13,18 @@ import loadXLSFile from './loadXLSFile.ts';
 async function checkProxy(proxyUrl: string, index: number) {
   try {
     // 创建代理 agent
-    const agent = new SocksProxyAgent(proxyUrl);
+    let agent;
+
+    // 根据代理协议选择合适的代理 Agent
+    if (proxyUrl.startsWith('socks')) {
+      agent = new SocksProxyAgent(proxyUrl);
+    } else if (proxyUrl.startsWith('http')) {
+      agent = new HttpsProxyAgent(proxyUrl);
+    } else {
+      console.error(`❌代理格式不支持！代理${index}: ${proxyUrl}`);
+      return false;
+    }
+
     // 发起请求检查 IP
     const response = await fetch('https://api.ipify.org?format=json', {
       agent,
@@ -40,7 +52,7 @@ async function checkProxy(proxyUrl: string, index: number) {
 async function checkProxies() {
   const proxies = await loadXLSFile('./config.xlsx');
   for (const [index, proxyUrl] of proxies.entries()) {
-    await checkProxy(proxyUrl, index+1);
+    await checkProxy(proxyUrl, index + 1);
   }
 }
 

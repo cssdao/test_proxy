@@ -6,6 +6,7 @@
     "start": "ts-node index.ts"
   },
   "dependencies": {
+    "https-proxy-agent": "^7.0.6",
     "node-fetch": "2.0.0",
     "socks-proxy-agent": "^8.0.5",
     "xlsx": "^0.18.5"
