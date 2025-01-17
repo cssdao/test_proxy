@@ -58,7 +58,7 @@ async function checkProxyAndFetch(proxyUrl: string, token: string) {
     }
 
     const userData = await discordResponse.json();
-    console.log(`✅ 获取用户信息成功，邮箱: ${userData.email || '未提供邮箱'}`);
+    console.log(`✅ 获取用户信息成功，用户名: ${userData.global_name}，邮箱: ${userData.email || '未提供邮箱'}`);
   } catch (error) {
     console.error(`❌ 请求失败：${proxyUrl}，错误信息: ${error.message}`);
   }
