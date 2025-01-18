@@ -12,7 +12,7 @@ export default async function loadFromXLS(filePath) {
     // 将工作表转换为 JSON
     const data = XLSX.utils.sheet_to_json(worksheet);
 
-    data.forEach((row: { proxy: string; token: string }) => {
+    data.forEach((row: { proxy: string; token: string, session: string }) => {
       // 验证必要字段
       if (!row.proxy) {
         console.warn('跳过无效配置行：', row);
@@ -21,11 +21,12 @@ export default async function loadFromXLS(filePath) {
       }
 
       // 使用解构赋值简化推送配置
-      const { proxy, token } = row;
+      const { proxy, token, session } = row;
 
       configs.push({
         proxy,
         token,
+        session
       });
     });
 
