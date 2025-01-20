@@ -1,6 +1,8 @@
 // 柑橘定时签到每个 24 小时
 // https://discord.com/channels/1202156430430306304/1290340375361491046
 import fetch from 'node-fetch';
+import FormData from 'form-data';
+
 export default async function citreaDailyRequest(token, sessionId, agent) {
   const url = "https://discord.com/api/v9/interactions";
 
@@ -24,24 +26,36 @@ export default async function citreaDailyRequest(token, sessionId, agent) {
     analytics_location: 'slash_ui',
   });
 
-  formData.set('payload_json', payloadJson);
+  formData.append('payload_json', payloadJson);
 
-  fetch(url, {
-    headers: {
-      accept: '*/*',
-      authorization: token,
-      'content-type':
-        'multipart/form-data; boundary=----WebKitFormBoundaryBnUFO77Qs6VnW6vB',
-    },
-    body: formData,
-    method: 'POST',
-    agent,
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log('Request successful:', data);
-    })
-    .catch((error) => {
-      console.error('Error during request:', error);
+  try {
+    const response = await fetch(url, {
+      headers: {
+        accept: '*/*',
+        authorization: token,
+      },
+      body: formData,
+      method: 'POST',
+      agent,
     });
+
+    // Discord interaction endpoints often return 204 No Content on success
+    if (response.status === 204) {
+      console.log('Daily check-in successful!');
+      return true;
+    }
+
+    // If we get a different status, try to parse the response
+    const text = await response.text();
+    try {
+      const data = JSON.parse(text);
+      console.error('Request failed:', data);
+    } catch {
+      console.error('Request failed with status:', response.status, text);
+    }
+    return false;
+  } catch (error) {
+    console.error('Error during request:', error);
+    return false;
+  }
 }

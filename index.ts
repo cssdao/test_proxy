@@ -27,7 +27,7 @@ async function checkProxyAndFetch(
     } else if (proxyUrl.startsWith('http')) {
       agent = new HttpsProxyAgent(proxyUrl);
     } else {
-      console.error(`❌ 代理IP格式不支持：${proxyUrl}`);
+      console.error(`❌ 代理 IP 格式不支持：${proxyUrl}`);
       return;
     }
 
@@ -59,7 +59,7 @@ async function checkProxyAndFetch(
     );
 
     if (!discordResponse.ok) {
-      console.error(`❌ 获取用户信息失败，Token 无效: ${token}`);
+      console.error(`❌ 获取用户信息失败，Token 无效：${token}`);
       return;
     }
 
@@ -70,12 +70,11 @@ async function checkProxyAndFetch(
 
     const userData = await discordResponse.json();
     console.log(
-      `✅ 获取用户信息成功，用户名: ${userData.global_name}，邮箱: ${
-        userData.email || '未提供邮箱'
+      `✅ 获取用户信息成功，用户名：${userData.global_name}，邮箱：${userData.email || '未提供邮箱'
       }`
     );
   } catch (error) {
-    console.error(`❌ 请求失败：${proxyUrl}，错误信息: ${error.message}`);
+    console.error(`❌ 请求失败：${proxyUrl}，错误信息：${error.message}`);
   }
 }
 
@@ -85,7 +84,7 @@ async function checkProxyAndFetch(
 async function checkProxiesAndFetch() {
   const proxyData = await loadXLSFile('./config.xlsx');
   for (const [index, { proxy, token, session }] of proxyData.entries()) {
-    console.log(`🔄 [代理${index + 1}] 准备测试，代理: ${proxy}`);
+    console.log(`🔄 [代理${index + 1}] 准备测试，代理：${proxy}`);
     if (!proxy || !token) {
       console.warn(`⚠️ [代理${proxy}] 数据缺失，跳过测试`);
       continue;
