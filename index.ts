@@ -15,6 +15,8 @@ const CHECK_INTERVAL = 15 * 60 * 60 * 1000;
 
 // 记录每个 token 的上次签到时间
 const lastCheckIn = new Map();
+// 缓存已验证用户信息
+const verifiedUsers = new Map();
 
 /**
  * 生成一个随机的延迟时间
@@ -35,6 +37,12 @@ function getRandomDelay() {
  */
 async function checkProxyAndFetch(proxyUrl, token, session) {
   try {
+    // 如果用户已验证，直接跳过验证逻辑
+    if (verifiedUsers.has(token)) {
+      await handleCheckIn(token, session);
+      return;
+    }
+
     let agent;
 
     // 根据代理协议选择代理 Agent
@@ -87,43 +95,56 @@ async function checkProxyAndFetch(proxyUrl, token, session) {
       }`
     );
 
-    // 判断是否需要签到
-    const lastTime = lastCheckIn.get(token) || 0;
-    const currentTime = Date.now();
-
-    if (!session) return;
-
-    if (currentTime - lastTime >= CHECK_INTERVAL) {
-      const delay = getRandomDelay();
-      console.log(
-        `⏳ ${username} 签到冷却完成，将在 ${Math.floor(
-          delay / 1000
-        )} 秒后开始签到`
-      );
-
-      // 延迟签到
-      setTimeout(async () => {
-        console.log(`🔄 [${username}] 正在执行签到...`);
-        const success = await citreaDailyRequest(token, session, agent);
-        if (success) {
-          lastCheckIn.set(token, Date.now()); // 更新签到时间
-          console.log(`✅ ${username} 签到成功！`);
-        }
-      }, delay);
-    } else {
-      const remainingTimeMs = CHECK_INTERVAL - (currentTime - lastTime);
-      if (remainingTimeMs > 0) {
-        const remainingHours = Math.floor(remainingTimeMs / (60 * 60 * 1000));
-        const remainingMinutes = Math.ceil(
-          (remainingTimeMs % (60 * 60 * 1000)) / (60 * 1000)
-        );
-        console.log(
-          `⏳ 签到冷却中，用户名：${username}，剩余时间：${remainingHours} 小时 ${remainingMinutes} 分钟`
-        );
-      }
-    }
+    // 缓存用户信息
+    verifiedUsers.set(token, { username, ip: ipData.ip });
+    await handleCheckIn(token, session);
   } catch (error) {
     console.error(`❌ 请求失败：${proxyUrl}，错误信息：${error.message}`);
+  }
+}
+
+/**
+ * 执行签到逻辑
+ *
+ * @param {string} token - Discord 的 token。
+ * @param {string} session - Discord 的 session ID。
+ */
+async function handleCheckIn(token, session) {
+  const lastTime = lastCheckIn.get(token) || 0;
+  const currentTime = Date.now();
+
+  if (!session) return;
+
+  if (currentTime - lastTime >= CHECK_INTERVAL) {
+    const delay = getRandomDelay();
+    const username = verifiedUsers.get(token)?.username || '未知用户';
+    console.log(
+      `⏳ ${username} 签到冷却完成，将在 ${Math.floor(
+        delay / 1000
+      )} 秒后开始签到`
+    );
+
+    // 延迟签到
+    setTimeout(async () => {
+      console.log(`🔄 ${username} 正在执行签到...`);
+      const success = await citreaDailyRequest(token, session, null);
+      if (success) {
+        lastCheckIn.set(token, Date.now()); // 更新签到时间
+        console.log(`✅ ${username} 签到成功！`);
+      }
+    }, delay);
+  } else {
+    const remainingTimeMs = CHECK_INTERVAL - (currentTime - lastTime);
+    if (remainingTimeMs > 0) {
+      const remainingHours = Math.floor(remainingTimeMs / (60 * 60 * 1000));
+      const remainingMinutes = Math.ceil(
+        (remainingTimeMs % (60 * 60 * 1000)) / (60 * 1000)
+      );
+      const username = verifiedUsers.get(token)?.username || '未知用户';
+      console.log(
+        `⏳ 签到冷却中，用户名：${username}，剩余时间：${remainingHours} 小时 ${remainingMinutes} 分钟`
+      );
+    }
   }
 }
 
