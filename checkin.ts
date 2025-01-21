@@ -41,7 +41,6 @@ export default async function citreaDailyRequest(token, sessionId, agent) {
 
     // Discord interaction endpoints often return 204 No Content on success
     if (response.status === 204) {
-      console.log('Daily check-in successful!');
       return true;
     }
 

@@ -10,8 +10,8 @@ import citreaDailyRequest from './checkin.ts';
  */
 const MIN_DELAY = 1 * 60 * 1000; // 1 分钟
 const MAX_DELAY = 10 * 60 * 1000; // 10 分钟
-// 签到间隔时间，10 小时
-const CHECK_INTERVAL = 10 * 60 * 60 * 1000;
+// 签到间隔时间，15 小时
+const CHECK_INTERVAL = 15 * 60 * 60 * 1000;
 
 // 记录每个 token 的上次签到时间
 const lastCheckIn = new Map();
@@ -80,8 +80,9 @@ async function checkProxyAndFetch(proxyUrl, token, session) {
     }
 
     const userData = await discordResponse.json();
+    const username = userData.global_name || userData.username || '未知用户';
     console.log(
-      `✅ 获取用户信息成功，用户名：${userData.global_name}，邮箱：${
+      `✅ 获取用户信息成功，用户名：${username}，邮箱：${
         userData.email || '未提供邮箱'
       }`
     );
@@ -90,30 +91,36 @@ async function checkProxyAndFetch(proxyUrl, token, session) {
     const lastTime = lastCheckIn.get(token) || 0;
     const currentTime = Date.now();
 
-    if (session && currentTime - lastTime >= CHECK_INTERVAL) {
+    if (!session) return;
+
+    if (currentTime - lastTime >= CHECK_INTERVAL) {
       const delay = getRandomDelay();
       console.log(
-        `⏳ [${userData.global_name}] 签到冷却完成，将在 ${Math.floor(
+        `⏳ ${username} 签到冷却完成，将在 ${Math.floor(
           delay / 1000
         )} 秒后开始签到`
       );
 
       // 延迟签到
       setTimeout(async () => {
-        console.log(`🔄 [${userData.global_name}] 正在执行签到...`);
+        console.log(`🔄 [${username}] 正在执行签到...`);
         const success = await citreaDailyRequest(token, session, agent);
         if (success) {
           lastCheckIn.set(token, Date.now()); // 更新签到时间
-          console.log(`✅ [${userData.global_name}] 签到成功！`);
+          console.log(`✅ ${username} 签到成功！`);
         }
       }, delay);
     } else {
-      const remainingTime = Math.ceil(
-        (CHECK_INTERVAL - (currentTime - lastTime)) / (60 * 60 * 1000)
-      );
-      console.log(
-        `⏳ 签到冷却中，用户名：${userData.global_name}，剩余时间：${remainingTime} 小时`
-      );
+      const remainingTimeMs = CHECK_INTERVAL - (currentTime - lastTime);
+      if (remainingTimeMs > 0) {
+        const remainingHours = Math.floor(remainingTimeMs / (60 * 60 * 1000));
+        const remainingMinutes = Math.ceil(
+          (remainingTimeMs % (60 * 60 * 1000)) / (60 * 1000)
+        );
+        console.log(
+          `⏳ 签到冷却中，用户名：${username}，剩余时间：${remainingHours} 小时 ${remainingMinutes} 分钟`
+        );
+      }
     }
   } catch (error) {
     console.error(`❌ 请求失败：${proxyUrl}，错误信息：${error.message}`);
