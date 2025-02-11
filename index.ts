@@ -10,8 +10,8 @@ import citreaDailyRequest from './checkin.ts';
  */
 const MIN_DELAY = 1 * 60 * 1000; // 1 分钟
 const MAX_DELAY = 10 * 60 * 1000; // 10 分钟
-// 签到间隔时间，15 小时
-const CHECK_INTERVAL = 15 * 60 * 60 * 1000;
+// 签到间隔时间，24 小时
+const CHECK_INTERVAL = 24 * 60 * 60 * 1000;
 
 // 记录每个 token 的上次签到时间
 const lastCheckIn = new Map();
@@ -165,12 +165,12 @@ async function checkProxiesAndFetch() {
 }
 
 /**
- * 定时任务：每 1 小时执行一次检查
+ * 定时任务：每 10 分钟执行一次检查
  */
 function startScheduler() {
-  console.log('🚀 开始定时任务，每小时检查一次代理和签到状态');
+  console.log('🚀 开始定时任务，检查代理和签到状态');
   checkProxiesAndFetch(); // 立即执行一次
-  setInterval(checkProxiesAndFetch, 60 * 60 * 1000); // 每小时执行
+  setInterval(checkProxiesAndFetch, 10 * 60 * 1000);
 }
 
 // 启动任务
